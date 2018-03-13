@@ -31,6 +31,10 @@ var rconCommand = cli.Command{
 			Name:  "password, p",
 			Usage: "password to use for rcon",
 		},
+		cli.BoolFlag{
+			Name:  "stats, s",
+			Usage: "print server stats",
+		},
 	},
 	Action: func(c *cli.Context) {
 		addr := c.GlobalString("addr")
@@ -52,12 +56,16 @@ var rconCommand = cli.Command{
 			password = string(passwordSlice)
 		}
 
-		if !c.Args().Present() {
-			fmt.Println("please provide the command to exec")
-			os.Exit(1)
-		}
+		var cmd string
 
-		cmd := c.Args().First()
+		if !c.Bool("stats") {
+			if !c.Args().Present() {
+				fmt.Println("please provide the command to exec")
+				os.Exit(1)
+			}
+
+			cmd = c.Args().First()
+		}
 
 		server, err := steam.Connect(addr, steam.WithRCONPassword(password))
 		if err != nil {
@@ -67,13 +75,23 @@ var rconCommand = cli.Command{
 		defer server.Close()
 
 		for {
-			resp, err := server.Send(cmd)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "could not exec %q on %v: %v\n", cmd, addr, err)
-				os.Exit(1)
-			}
+			if c.Bool("stats") {
+				resp, err := server.Stats()
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "could not fetch stats from %v: %v\n", addr, err)
+					os.Exit(1)
+				}
 
-			fmt.Println(resp)
+				fmt.Println(resp)
+			} else {
+				resp, err := server.Send(cmd)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "could not exec %q on %v: %v\n", cmd, addr, err)
+					os.Exit(1)
+				}
+
+				fmt.Println(resp)
+			}
 
 			if !c.Bool("forever") {
 				return
