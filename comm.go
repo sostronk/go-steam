@@ -407,33 +407,41 @@ func (r *rconResponse) unmarshalBinary(data []byte) (err error) {
 	return nil
 }
 
-// TODO(anands): Temporary sample output.
+// StatsResponse represents a stats response from server.
+//
+// srcds typically sends the following output:
+//
 //   CPU   NetIn   NetOut    Uptime  Maps   FPS   Players  Svms    +-ms   ~tick
 //   10.0 241763.2 1518923.5   10419    58  127.98      16    3.72    1.56    0.36
-// L 03/09/2018 - 08:59:17: rcon from "106.51.72.233:60415": command "stats"
-
-// TODO(anands): Proper naming.
 type StatsResponse struct {
-	CPU         int
-	NetIn       float64
-	NetOut      float64
-	Uptime      int
-	Maps        int
-	FPS         float64
-	Players     int
-	Svms        float64
-	PlusMinusms float64
-	Tick        float64
+	CPU     int
+	NetIn   float64
+	NetOut  float64
+	Uptime  int
+	Maps    int
+	FPS     float64
+	Players int
+
+	Sv          float64
+	SvDeviation float64
+
+	Tick float64
 }
 
-func (r *StatsResponse) unmarshalStatsRCONResponse(output string) (err error) {
+func (r *StatsResponse) String() string {
+	return fmt.Sprintf("cpu: %d netin: %0.2f netout: %0.2f uptime: %d maps: %d fps: %0.2f players: %d sv: %0.2f sv+-: %0.2f tick: %0.2f",
+		r.CPU, r.NetIn, r.NetOut, r.Uptime, r.Maps, r.FPS, r.Players, r.Sv, r.SvDeviation, r.Tick,
+	)
+}
+
+func (r *StatsResponse) unmarshalString(data string) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = r.(error)
 		}
 	}()
 
-	fields := strings.Fields(output)
+	fields := strings.Fields(data)
 
 	r.CPU = int(mustInterface(strconv.ParseFloat(fields[10], 64)).(float64))
 	r.NetIn = mustInterface(strconv.ParseFloat(fields[11], 64)).(float64)
@@ -442,8 +450,8 @@ func (r *StatsResponse) unmarshalStatsRCONResponse(output string) (err error) {
 	r.Maps = mustInterface(strconv.Atoi(fields[14])).(int)
 	r.FPS = mustInterface(strconv.ParseFloat(fields[15], 64)).(float64)
 	r.Players = mustInterface(strconv.Atoi(fields[16])).(int)
-	r.Svms = mustInterface(strconv.ParseFloat(fields[17], 64)).(float64)
-	r.PlusMinusms = mustInterface(strconv.ParseFloat(fields[18], 64)).(float64)
+	r.Sv = mustInterface(strconv.ParseFloat(fields[17], 64)).(float64)
+	r.SvDeviation = mustInterface(strconv.ParseFloat(fields[18], 64)).(float64)
 	r.Tick = mustInterface(strconv.ParseFloat(fields[19], 64)).(float64)
 
 	return nil
