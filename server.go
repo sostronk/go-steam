@@ -423,7 +423,7 @@ func (s *Server) Stats() (*StatsResponse, error) {
 	}
 
 	var res StatsResponse
-	if err := res.unmarshalStatsRCONResponse(output); err != nil {
+	if err := res.unmarshalString(output); err != nil {
 		return nil, err
 	}
 
