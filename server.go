@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	logrus "github.com/Sirupsen/logrus"
+	logrus "github.com/sirupsen/logrus"
 )
 
 // The DialFn type is an adapter to allow the use of

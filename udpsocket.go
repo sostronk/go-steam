@@ -55,5 +55,8 @@ func (s *udpSocket) receive() ([]byte, error) {
 	if buf[0] == 0xFE {
 		return nil, errors.New("steam: cannot handle split packets")
 	}
+	if len(buf) < 4 {
+		return nil, errors.New("steam: invalid buffer size")
+	}
 	return buf[4:], nil
 }
