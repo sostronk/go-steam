@@ -8,7 +8,7 @@ import (
 	"os"
 	"time"
 
-	logrus "github.com/Sirupsen/logrus"
+	logrus "github.com/sirupsen/logrus"
 	"github.com/sostronk/go-steam"
 )
 
